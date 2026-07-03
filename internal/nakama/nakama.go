@@ -10,6 +10,7 @@ import (
 	debrid_client "seanime/internal/debrid/client"
 	"seanime/internal/directstream"
 	"seanime/internal/events"
+	"seanime/internal/extension_repo"
 	"seanime/internal/library/playbackmanager"
 	"seanime/internal/nativeplayer"
 	"seanime/internal/platforms/platform"
@@ -45,6 +46,7 @@ type Manager struct {
 	torrentstreamRepository *torrentstream.Repository
 	debridClientRepository  *debrid_client.Repository
 	directstreamManager     *directstream.Manager
+	extensionRepository     *extension_repo.Repository
 	peerId                  string
 	nativePlayer            *nativeplayer.NativePlayer
 	videoCore               *videocore.VideoCore
@@ -101,6 +103,7 @@ type NewManagerOptions struct {
 	NativePlayer            *nativeplayer.NativePlayer
 	VideoCore               *videocore.VideoCore
 	DirectStreamManager     *directstream.Manager
+	ExtensionRepository     *extension_repo.Repository
 	IsOfflineRef            *util.Ref[bool]
 }
 
@@ -246,6 +249,7 @@ func NewManager(opts *NewManagerOptions) *Manager {
 		videoCore:               opts.VideoCore,
 		useDenshiPlayer:         false,
 		directstreamManager:     opts.DirectStreamManager,
+		extensionRepository:     opts.ExtensionRepository,
 		isOfflineRef:            opts.IsOfflineRef,
 		connectionMode:          ConnectionModeDirect, // Default to direct mode
 	}

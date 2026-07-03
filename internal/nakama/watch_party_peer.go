@@ -388,15 +388,26 @@ func (wpm *WatchPartyManager) handleWatchPartyStateChangedEvent(payload *WatchPa
 		// Reset the player params
 		wpm.manager.genericPlayer.Reset()
 
+		// The host's media ID may be a fabricated custom source ID (see customsource.GenerateMediaId).
+		// Since the extension identifier baked into it is randomly assigned per-installation, it likely
+		// doesn't match this instance's own identifier for the same extension. Remap it using the
+		// extension's stable string ID before doing anything else with it.
+		mediaId, remapOk := wpm.manager.remapCustomSourceMediaId(payload.Session.CurrentMediaInfo.MediaId, payload.Session.CurrentMediaInfo.CustomSourceExtensionId)
+		if !remapOk {
+			wpm.logger.Error().Str("extensionId", payload.Session.CurrentMediaInfo.CustomSourceExtensionId).Msg("nakama: Cannot play watch party media, custom source extension not installed locally")
+			wpm.manager.wsEventManager.SendEvent(events.ErrorToast, "Watch party: Failed to play media: This media is from a custom source extension that isn't installed on your machine")
+			return
+		}
+
 		// Fetch the media info
-		media, err := wpm.manager.platformRef.Get().GetAnime(context.Background(), payload.Session.CurrentMediaInfo.MediaId)
+		media, err := wpm.manager.platformRef.Get().GetAnime(context.Background(), mediaId)
 		if err != nil {
 			wpm.logger.Error().Err(err).Msg("nakama: Failed to fetch media info for watch party")
 			return
 		}
 
 		// Start the media on the peer
-		wpm.logger.Debug().Int("mediaId", payload.Session.CurrentMediaInfo.MediaId).Msg("nakama: Starting watch party media")
+		wpm.logger.Debug().Int("mediaId", mediaId).Msg("nakama: Starting watch party media")
 
 		switch payload.Session.CurrentMediaInfo.StreamType {
 		case WatchPartyStreamTypeTorrent:
@@ -421,8 +432,8 @@ func (wpm *WatchPartyManager) handleWatchPartyStateChangedEvent(payload *WatchPa
 
 			// Start the torrent
 			err = wpm.manager.torrentstreamRepository.StartStream(wpm.sessionCtx, payload.Session.CurrentMediaInfo.TorrentStreamParams)
-		case WatchPartyStreamTypeDebrid:
-			// Start the debrid stream, which is just the current stream the host is playing
+		case WatchPartyStreamTypeDebrid, WatchPartyStreamTypeUrl:
+			// Start the debrid/custom source stream, which is just the current stream the host is playing
 			err = wpm.manager.PlayHostAnimeStream(payload.Session.CurrentMediaInfo.StreamType, "seanime/nakama", wpm.clientId, media, payload.Session.CurrentMediaInfo.AniDBEpisode)
 		case WatchPartyStreamTypeFile:
 			// Start the local file stream off of the host using the file path

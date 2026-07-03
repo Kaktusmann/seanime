@@ -310,6 +310,13 @@ func (h *Handler) HandleNakamaHostTorrentstreamServeStream(c echo.Context) error
 	return nil
 }
 
+// route /api/v1/nakama/host/urlstream/stream
+// Allows peers to stream the plugin-provided custom source (videocore.PlaybackTypeUrl) that the host is currently playing.
+func (h *Handler) HandleNakamaHostUrlstreamServeStream(c echo.Context) error {
+	h.App.DirectStreamManager.ServeCurrentUrlStream().ServeHTTP(c.Response().Writer, c.Request())
+	return nil
+}
+
 var videoProxyClient = &http.Client{
 	Transport: &http.Transport{
 		MaxIdleConns:        100,
@@ -412,7 +419,7 @@ func (h *Handler) HandleNakamaHostAnimeLibraryServeStream(c echo.Context) error 
 // For debrid streams, it redirects directly to the debrid service to avoid host bandwidth usage.
 func (h *Handler) HandleNakamaProxyStream(c echo.Context) error {
 
-	streamType := c.QueryParam("type") // "file", "torrent", "debrid"
+	streamType := c.QueryParam("type") // "file", "torrent", "debrid", "url"
 	if streamType == "" {
 		return echo.NewHTTPError(http.StatusBadRequest, "type is required")
 	}
@@ -520,6 +527,8 @@ func (h *Handler) HandleNakamaProxyStream(c echo.Context) error {
 		requestUrl = hostServerUrl + "/api/v1/nakama/host/anime/library/stream?path=" + filepath
 	case "torrent":
 		requestUrl = hostServerUrl + "/api/v1/nakama/host/torrentstream/stream"
+	case "url":
+		requestUrl = hostServerUrl + "/api/v1/nakama/host/urlstream/stream"
 	default:
 		return echo.NewHTTPError(http.StatusBadRequest, "invalid type")
 	}

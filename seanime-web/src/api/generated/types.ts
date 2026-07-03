@@ -4298,6 +4298,10 @@ export type Nakama_WatchPartySessionMediaInfo = {
     localFilePath: string
     onlinestreamParams?: VideoCore_OnlinestreamParams
     torrentStreamParams?: Torrentstream_StartStreamOptions
+    /**
+     * Set when mediaId is a fabricated custom source media ID, so peers can remap it to their own local equivalent.
+     */
+    customSourceExtensionId?: string
 }
 
 /**
@@ -4362,7 +4366,7 @@ export type Nakama_WatchPartySessionSettings = {
  * - Filename: watch_party.go
  * - Package: nakama
  */
-export type Nakama_WatchPartyStreamType = "file" | "torrent" | "debrid" | "onlinestream"
+export type Nakama_WatchPartyStreamType = "file" | "torrent" | "debrid" | "onlinestream" | "url"
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Nativeplayer

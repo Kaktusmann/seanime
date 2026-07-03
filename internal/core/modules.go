@@ -315,6 +315,7 @@ func (a *App) initModulesOnce() {
 		NativePlayer:            a.NativePlayer,
 		VideoCore:               a.VideoCore,
 		DirectStreamManager:     a.DirectStreamManager,
+		ExtensionRepository:     a.ExtensionRepository,
 		IsOfflineRef:            a.IsOfflineRef(),
 	})
 

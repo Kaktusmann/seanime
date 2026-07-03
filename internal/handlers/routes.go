@@ -588,6 +588,8 @@ func InitRoutes(app *core.App, e *echo.Echo) {
 	v1Nakama.GET("/host/debridstream/stream", h.HandleNakamaHostDebridstreamServeStream)
 	v1Nakama.HEAD("/host/debridstream/stream", h.HandleNakamaHostDebridstreamServeStream)
 	v1Nakama.GET("/host/debridstream/url", h.HandleNakamaHostGetDebridstreamURL)
+	v1Nakama.GET("/host/urlstream/stream", h.HandleNakamaHostUrlstreamServeStream)
+	v1Nakama.HEAD("/host/urlstream/stream", h.HandleNakamaHostUrlstreamServeStream)
 	v1Nakama.GET("/stream", h.HandleNakamaProxyStream)
 	v1Nakama.HEAD("/stream", h.HandleNakamaProxyStream)
 	v1Nakama.POST("/watch-party/create", h.HandleNakamaCreateWatchParty)

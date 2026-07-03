@@ -226,13 +226,14 @@ func (wpm *WatchPartyManager) hostPlaybackHandleStatus(opts hostPlaybackHandleSt
 
 	localFilePath := opts.localFilePath
 	newCurrentMediaInfo := &WatchPartySessionMediaInfo{
-		MediaId:             opts.mediaId,
-		EpisodeNumber:       opts.episodeNumber,
-		AniDBEpisode:        opts.aniDbEpisode,
-		StreamType:          opts.streamType,
-		LocalFilePath:       opts.localFilePath,
-		TorrentStreamParams: torrentStreamStartOptions,
-		OnlinestreamParams:  opts.onlinestreamParams,
+		MediaId:                 opts.mediaId,
+		EpisodeNumber:           opts.episodeNumber,
+		AniDBEpisode:            opts.aniDbEpisode,
+		StreamType:              opts.streamType,
+		LocalFilePath:           opts.localFilePath,
+		TorrentStreamParams:     torrentStreamStartOptions,
+		OnlinestreamParams:      opts.onlinestreamParams,
+		CustomSourceExtensionId: wpm.manager.resolveCustomSourceExtensionId(opts.mediaId),
 	}
 
 	wpm.mu.Lock()
@@ -400,6 +401,8 @@ func (wpm *WatchPartyManager) listenToPlaybackAsHost() {
 						streamType = WatchPartyStreamTypeDebrid
 					} else if event.PlaybackType == videocore.PlaybackTypeOnlinestream {
 						streamType = WatchPartyStreamTypeOnlinestream
+					} else if event.PlaybackType == videocore.PlaybackTypeUrl {
+						streamType = WatchPartyStreamTypeUrl
 					}
 
 					wpm.hostPlaybackHandleStatus(hostPlaybackHandleStatusOptions{

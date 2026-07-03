@@ -43,6 +43,46 @@ type (
 	}
 )
 
+// resolveCustomSourceExtensionId returns the stable extension ID string for a fabricated custom source
+// media ID (see customsource.GenerateMediaId), so it can be sent to peers who may have assigned a
+// different random local identifier to the same extension. Returns "" if mediaId isn't a custom source ID
+// or the extension can no longer be found locally.
+func (m *Manager) resolveCustomSourceExtensionId(mediaId int) string {
+	if !customsource.IsExtensionId(mediaId) || m.extensionRepository == nil {
+		return ""
+	}
+
+	extensionIdentifier, _ := customsource.ExtractExtensionData(mediaId)
+	for _, ext := range m.extensionRepository.ListCustomSourceExtensions() {
+		if ext.ExtensionIdentifier == extensionIdentifier {
+			return ext.ID
+		}
+	}
+
+	return ""
+}
+
+// remapCustomSourceMediaId converts a custom source media ID received from another Nakama instance into
+// this instance's own local equivalent, using the extension's stable string ID rather than the
+// (per-installation random) numeric identifier embedded in mediaId. Returns ok=false if the extension
+// isn't installed locally, in which case mediaId cannot be resolved on this machine.
+func (m *Manager) remapCustomSourceMediaId(mediaId int, extensionId string) (int, bool) {
+	if extensionId == "" {
+		return mediaId, true // not a custom source ID, nothing to remap
+	}
+	if m.extensionRepository == nil {
+		return mediaId, false
+	}
+
+	ext, ok := m.extensionRepository.GetCustomSourceExtensionByID(extensionId)
+	if !ok {
+		return mediaId, false
+	}
+
+	_, localId := customsource.ExtractExtensionData(mediaId)
+	return customsource.GenerateMediaId(ext.GetExtensionIdentifier(), localId), true
+}
+
 // generateHMACToken generates an HMAC token for stream authentication
 func (m *Manager) generateHMACToken(endpoint string) (string, error) {
 	// Use the Nakama password as the base secret - HostPassword for hosts, RemoteServerPassword for peers

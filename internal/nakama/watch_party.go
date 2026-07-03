@@ -180,6 +180,9 @@ const (
 	WatchPartyStreamTypeTorrent      WatchPartyStreamType = "torrent"
 	WatchPartyStreamTypeDebrid       WatchPartyStreamType = "debrid"
 	WatchPartyStreamTypeOnlinestream WatchPartyStreamType = "onlinestream"
+	// WatchPartyStreamTypeUrl is used for plugin-provided custom sources (videocore.PlaybackTypeUrl).
+	// Peers fetch the bytes through the host's Nakama stream proxy, same as debrid.
+	WatchPartyStreamTypeUrl WatchPartyStreamType = "url"
 )
 
 type WatchPartySessionMediaInfo struct {
@@ -192,6 +195,11 @@ type WatchPartySessionMediaInfo struct {
 	OnlinestreamParams *videocore.OnlinestreamParams `json:"onlinestreamParams,omitempty"`
 	// OnlinestreamParams used by peers to start the same stream
 	TorrentStreamParams *torrentstream.StartStreamOptions `json:"torrentStreamParams,omitempty"`
+	// CustomSourceExtensionId is set when MediaId is a fabricated custom source media ID.
+	// The fabricated ID embeds a per-installation random extension identifier, so it cannot be
+	// resolved as-is on a peer's machine. Peers use this stable extension ID string to remap
+	// MediaId into their own local equivalent before using it. Empty if MediaId is a real AniList ID.
+	CustomSourceExtensionId string `json:"customSourceExtensionId,omitempty"`
 }
 
 type WatchPartySessionSettings struct {
@@ -483,7 +491,8 @@ func (mi *WatchPartySessionMediaInfo) Equals(other *WatchPartySessionMediaInfo) 
 		mi.EpisodeNumber == other.EpisodeNumber &&
 		mi.AniDBEpisode == other.AniDBEpisode &&
 		mi.StreamType == other.StreamType &&
-		mi.LocalFilePath == other.LocalFilePath
+		mi.LocalFilePath == other.LocalFilePath &&
+		mi.CustomSourceExtensionId == other.CustomSourceExtensionId
 }
 
 // SendChatMessage sends a chat message to all participants in the watch party

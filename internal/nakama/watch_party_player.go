@@ -240,7 +240,7 @@ func fromVideoCoreStatus(event *videocore.VideoStatusEvent, state *videocore.Pla
 	} else if event.PlaybackType == videocore.PlaybackTypeOnlinestream {
 		streamType = WatchPartyStreamTypeOnlinestream
 	} else if event.PlaybackType == videocore.PlaybackTypeUrl {
-		// todo
+		streamType = WatchPartyStreamTypeUrl
 	}
 
 	return &WatchPartyPlayerVideoStatus{
@@ -323,6 +323,8 @@ func (m *WatchPartyGenericPlayer) Subscribe(id string) *WatchPartyPlaybackSubscr
 					streamType = WatchPartyStreamTypeDebrid
 				} else if event.PlaybackType == videocore.PlaybackTypeOnlinestream {
 					streamType = WatchPartyStreamTypeOnlinestream
+				} else if event.PlaybackType == videocore.PlaybackTypeUrl {
+					streamType = WatchPartyStreamTypeUrl
 				}
 
 				subscriber.EventCh <- &WatchPartyPlayerVideoStarted{

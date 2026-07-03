@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
+	"seanime/internal/nativeplayer"
 
 	"github.com/labstack/echo/v4"
 )
@@ -15,6 +16,24 @@ import (
 // Otherwise, it just serves the video.
 func (m *Manager) ServeEchoStream() http.Handler {
 	return m.getStreamHandler()
+}
+
+// ServeCurrentUrlStream serves the raw bytes of the currently playing URL stream (e.g. a plugin custom source).
+// Unlike ServeEchoStream, it doesn't validate the stream ID since the caller (a Nakama peer) has no way of knowing it.
+// It's used so that watch party peers can fetch the same source the host is playing.
+func (m *Manager) ServeCurrentUrlStream() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		m.playbackMu.Lock()
+		stream, ok := m.currentStream.Get()
+		m.playbackMu.Unlock()
+
+		if !ok || stream.Type() != nativeplayer.StreamTypeURL {
+			http.Error(w, "no active url stream", http.StatusNotFound)
+			return
+		}
+
+		stream.GetStreamHandler().ServeHTTP(w, r)
+	})
 }
 
 // ServeEchoAttachments serves the attachments loaded into memory from the current stream.
